@@ -1,50 +1,49 @@
 const fs = require('fs');
 const path = require('path');
-
-// \*
-// process.stdin.on("data", dataBuffer => {
-//     const input = dataBuffer.toString().trim();
-//     try {
-//         \\ const content = fs.readdirSync(`${__dirname}\\\\${input}`);
-//         const content = fs.readdirSync(path.relative(__dirname, input));
-//         process.stdout.write(content.join("\\n"));
-//         process.exit(0);
-//     } catch(e) {
-//         process.stderr.write(e.toString());
-//         process.exit(1);
-//     }
-// });
-//  *\
-// \* Methods:
-//     fs.readdir
-//     fs.readFile
-//     fs.lstat
-//     fs.writefile
-//  *\
-
-
-
+const map = [];
+let success = 0;
 function findTreasureSync(roomPath) {
+    try {
+        if(success === 1) {return}
+        let fullRoomPath = path.resolve(__dirname,roomPath)
+        const dirArr = fs.readdirSync(fullRoomPath);
+        for(let path of dirArr){
+            map.push(roomPath);
+            const newPath = fullRoomPath + "\\"+  path
+            if(path.includes('room')){
+                findTreasureSync(newPath);
+            }
+            else{
+                openChestSync(newPath);
 
+            }
+        }
+    } catch (error) {
+        findTreasureSync(path.resolve(__dirname ,'..\\'))
+    }
 }
-
+findTreasureSync('maze')
 function openChestSync(chestPath) {
     try {
+      
        const data = fs.readFileSync(chestPath)
        const returnedObj = (JSON.parse(data));
-       if(! returnedObj.clue.includes('\\')){
-        throw
-       }
-       if(returnedObj.clue !== undefined){
-          return returnedObj.clue; 
-       }else{
-        return returnedObj.treasure;
+       if(returnedObj.clue !== undefined && fs.existsSync(returnedObj.clue)){
+            findTreasureSync(returnedObj.clue); 
+       }else if(returnedObj.treasure !== undefined){
+           console.log(`yay we found the treasure: ${returnedObj.treasure}`)
+           map.push('treasure')
+           success = 1;
+           drawMapSync(map);
+           return
        }
 
     } catch (error) {
-        console.error(error);
+        return 
     }
 }
-// openChestSync("C:\\Developer\\Cyber4s\\Maze\\maze-example\\room-0\\room-0\\chest-1.json")
 
-function drawMapSync(currentRoomPath) {}
+function drawMapSync(mapArr) {
+    const stringMap = String(mapArr.join('\n'))
+    fs.writeFileSync('map.txt', stringMap)
+}
