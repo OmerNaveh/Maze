@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-findTreasure('maze', (err,data)=>{
-    if(err!==null) return;
-    return data;
+findTreasure('maze', (err ,data)=>{
+    if(err!==null) console.log(err);
+    console.log(data);
 })
 
 function findTreasure(roomPath, cb) {
@@ -13,8 +13,8 @@ function findTreasure(roomPath, cb) {
             if (err!==null) { throw 'not good'};
             for(let fileOrFolder of filesFoldersArray){
                 drawMap(roomPath,(error,data)=>{
-                    if(error!==null) return;
-                    return data;
+                    if(error!==null) return cb(null,null);
+                    return cb(null,data);
                 }) //push corrent location
                 const nextPath = path.resolve(fullRoomPath,fileOrFolder);
                 if(!fileOrFolder.includes('room')){ //It is a clue
@@ -40,14 +40,14 @@ function openChest(chestPath, cb) {
                         if(error!==null) return;
                         return data;
                     })
-                    return chestContent.treasure
+                    return 'treasure'
                 }
                 if (chestContent.clue) {
                     const roomPath = chestContent.clue;
                     if (fs.existsSync(roomPath)) {
                         return findTreasure(roomPath,(error , value)=>{
                             if(error!==null) return;
-                            return value;
+                            return 'clue';
                         });
                     }
                 }
@@ -57,13 +57,13 @@ function openChest(chestPath, cb) {
     }else return
 }
 
-
 function drawMap(currentRoomPath, cb) {
     if(cb){
-        fs.appendFile('map2.txt', `${currentRoomPath}\n`, (error,data)=>{
+        fs.appendFile('map3.txt', `${currentRoomPath}\n`, (error,data)=>{
             if(error!==null) return;
             return data;
         })
     }
     return;
 }
+
