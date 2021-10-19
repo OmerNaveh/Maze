@@ -1,54 +1,56 @@
-const fs = require('fs');
+
 const path = require('path');
+const fsPromises = require('fs/promises');
+const fs = require("fs");
+const { off } = require('process');
 
 //function call
-promiseTreasure('maze')
-.then((result)=> {console.log("We did it! 💰")}) //Success message
-.catch((error)=> {console.log("Try again! : " + error)}); //Error message
+promiseTreasure('maze');
 
 //Gets Path to a folder and looks for what it contains - 
-//if it is a file you will send it to a function openChest else it continues searching
+//if it is a file you will send it to a function openChestSync else it continues searching
 async function promiseTreasure(roomPath) {
+    try {
+        console.log("roomPath "+roomPath)
         let fullRoomPath = path.resolve(__dirname,roomPath);
         //What files & folders are in the room
-        const filesFoldersArray = fs.readdirSync(fullRoomPath);
+        const filesFoldersArray = await fsPromises.readdir(fullRoomPath); 
+        console.log(filesFoldersArray)
         for(let fileOrFolder of filesFoldersArray){
-            await drawMapSync(roomPath); //push corrent location
+            drawMapSync(roomPath) //push corrent location
             const nextPath = path.resolve(fullRoomPath,fileOrFolder);
-            if(!fileOrFolder.includes('room')){ //It is a clue (fs.lstats(path).isFile() didn't work for us 😪)
+            if(!fileOrFolder.includes('room')){ //It is a clue
                 try {
-                    return openChest(nextPath)
-                    .then((chestContent) => { 
-                        if (chestContent === "💰") return; //Check if Treasure was found
-                        else promiseTreasure(chestContent); //Keep searching based on this clue
-                    })
-                    .catch((reject) => reject); //not a valid clue
-                } catch {return;}
+                    return await openChest(nextPath) ;
+                } catch {}
             }
         }
+    } catch (error) {}
 }
 
-//Opens files and identifies whether a clue, treasure or not a valid clue
+//Opens files and identifies whether a clue, treasure or to continue searching
 async function openChest(chestPath) {
     try {
-        const data = fs.readFileSync(chestPath); //Get get file content
-        const chestContent = await JSON.parse(data); //Parse it
-        if (chestContent.treasure) {
-             await drawMapSync('💰'); //Push treasure
-            return "💰";
-        }
-        if (chestContent.clue) {
-            const roomPath = chestContent.clue;
-            if (fs.existsSync(roomPath)) {
-                 return roomPath; //Return clue
-            }
-        }
+       const data = await fsPromises.readFile(chestPath); //Get get file content
+       console.log("data "+data)
+       const chestContent = JSON.parse(data); //Parse it
+       if (chestContent.treasure) {
+            console.log(`yay we found the treasure: ${chestContent.treasure}`)
+            drawMapSync('💰'); //Push treasure
+           return chestContent.treasure
+       }
+       if (chestContent.clue) {
+           const roomPath = chestContent.clue;
+           if (fs.existsSync(roomPath)) {
+                return promiseTreasure(roomPath);
+           }
+       }
     } catch (error) {
-        throw (error + "Chest is decoy");
+        throw "Chest is decoy";
     }
 }
 
-//Print currentRoomPath on new txt file
+//Gets an array and print the array on new txt file
 async function drawMapSync(currentRoomPath) {
-    fs.appendFileSync('map4.txt', `${currentRoomPath}\n`);
+    await fsPromises.appendFile('map4.txt', `${currentRoomPath}\n`)
 }

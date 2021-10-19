@@ -39,11 +39,11 @@ function openChest(chestPath, cb) {}
 function drawMapSync(currentRoomPath, cb) {}
 ```
 ----
-* [ ] Bonus:
+* [X] Bonus:
 ```js
 // Bonus: use **fs.promises**
 async function promiseTreasure(roomPath) {}
-async function promiseTreasure(roomPath) {}
+async function openChest(roomPath) {}
 async function drawMapSync(currentRoomPath) {}
 ```
 ----
