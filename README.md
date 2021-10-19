@@ -31,7 +31,7 @@ function openChestSync(chestPath) {}
 function drawMapSync(currentRoomPath) {}
 ```
 ----
-* [ ] Hard:
+* [X] Hard:
 ```js
 // Hard: async functions, use node-style callbacks for result and error handeling
 function findTreasure(roomPath, cb) {}
